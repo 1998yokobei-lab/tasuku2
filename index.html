@@ -8,45 +8,41 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
-        :root {
-            --bg: #001d42;
-            --card: #ffffff;
-            --blue: #007aff;
-            --red: #ff3b30;
-            --green: #34c759;
-            --gray: #8e8e93;
-        }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #1c1c1e; padding-bottom: 120px; }
-        .header-box { text-align: center; color: white; margin-bottom: 15px; }
+        :root { --bg: #001d42; --card: #ffffff; --blue: #007aff; --red: #ff3b30; --green: #34c759; --text: #1c1c1e; --gray: #8e8e93; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); padding-bottom: 120px; }
         .streak-badge { background: linear-gradient(45deg, #ff9500, #ff5e3a); color: white; border-radius: 50px; padding: 5px 15px; font-size: 14px; font-weight: 800; display: inline-block; margin-bottom: 10px; }
-        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 15px; text-align: center; backdrop-filter: blur(10px); }
-        .timer-display { font-size: 36px; font-weight: 800; }
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .card-title { font-weight: 800; font-size: 18px; margin-bottom: 15px; display: block; }
+        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        .timer-display { font-size: 40px; font-weight: 800; }
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        .card-title { font-weight: 800; font-size: 18px; margin-bottom: 15px; display: block; text-align: left; }
+        
+        /* ToDoリストのスタイル */
         .task-input-group { display: flex; gap: 8px; margin-bottom: 15px; }
         input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; }
         .btn-add { background: var(--blue); color: white; border: none; border-radius: 12px; padding: 0 15px; font-weight: bold; }
-        .task-list { list-style: none; padding: 0; margin: 0; }
+        .task-list { list-style: none; padding: 0; margin: 0; text-align: left; }
         .task-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         input[type="checkbox"] { width: 22px; height: 22px; margin-right: 12px; accent-color: var(--green); }
         .task-text { flex: 1; font-size: 17px; }
         .delete-task { color: var(--red); font-size: 12px; margin-left: 10px; opacity: 0.6; }
-        .action-area { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 15px 20px; backdrop-filter: blur(10px); border-top: 1px solid #ddd; z-index: 100; }
-        .btn { display: flex; align-items: center; justify-content: center; height: 55px; border-radius: 15px; font-size: 17px; font-weight: 700; text-decoration: none; margin-bottom: 10px; border: none; width: 100%; }
+
+        .btn { display: flex; align-items: center; justify-content: center; height: 60px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 10px; border: none; width: 100%; }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
         .btn-green:disabled { background: #ccc; opacity: 0.6; }
+        #msg { font-weight: 800; color: var(--blue); margin-top: 10px; }
         input[type="time"] { border: 1px solid rgba(255,255,255,0.3); padding: 5px; border-radius: 8px; color: white; background: transparent; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div class="header-box">
+    <div style="text-align: center; margin-top: 20px;">
         <div id="streak-container" class="streak-badge">🔥 0日連続達成中</div>
-        <div class="timer-card">
-            <div class="timer-display" id="countdown">00:00:00</div>
-            <input type="time" id="targetTimeInput" onchange="saveTargetTime()">
-        </div>
+    </div>
+
+    <div class="timer-card">
+        <div class="timer-display" id="countdown">00:00:00</div>
+        <div style="margin-top:10px;"><input type="time" id="targetTimeInput" onchange="saveTargetTime()"></div>
     </div>
 
     <div class="card">
@@ -58,116 +54,116 @@
         <ul id="taskList" class="task-list"></ul>
     </div>
 
-    <div class="action-area">
-        <a id="start-btn" href="#" class="btn btn-red" onclick="startLock()">集中モード開始</a>
-        <button id="completeBtn" class="btn btn-green" onclick="completeTask()" disabled>全タスク完了 & 解除</button>
+    <div class="card">
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">集中モード開始</a>
+        <button id="completeBtn" class="btn btn-green" onclick="completeTask()" disabled>全タスク完了＆解除</button>
+        <div id="msg"></div>
     </div>
-<script>
-    // URL設定
-    const MY_URL = 'https://1998yokobei-lab.github.io/tasuku/';
 
-    let targetTime = localStorage.getItem('targetTime') || "22:00";
-    document.getElementById('targetTimeInput').value = targetTime;
-    let count = parseInt(localStorage.getItem('myAppCount')) || 0;
-    let streak = parseInt(localStorage.getItem('myStreak')) || 0;
-    let lastDate = localStorage.getItem('lastCompleteDate') || "";
-    let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+    <div class="card" style="background: #f8f9fa;">
+        <div style="font-size: 36px; font-weight: 900;" id="count-display">0</div>
+    </div>
 
-    // ★ Safari移動を鉄壁ガードするコード
-    document.addEventListener('click', function(e) {
-        var target = e.target.closest('a');
-        if (target && target.href && target.href.startsWith('http')) {
-            // アプリ内のリンクなら、ブラウザで開かずに中身だけ変える
-            if (target.href.includes(window.location.host)) {
-                e.preventDefault();
-                window.location.href = target.href;
-            }
+    <script>
+        let targetTime = localStorage.getItem('targetTime') || "22:00";
+        document.getElementById('targetTimeInput').value = targetTime;
+        let count = parseInt(localStorage.getItem('myAppCount')) || 0;
+        let streak = parseInt(localStorage.getItem('myStreak')) || 0;
+        let lastDate = localStorage.getItem('lastCompleteDate') || "";
+        let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+
+        function saveTargetTime() {
+            targetTime = document.getElementById('targetTimeInput').value;
+            localStorage.setItem('targetTime', targetTime);
         }
-    }, false);
 
-    // ★ ショートカット呼び出し（x-callbackを使わない！）
-    function startLock() {
-        // x-callback-urlをやめて、直接ショートカットを叩く
-        window.location.href = "shortcuts://run-shortcut?name=ロック開始";
-    }
+        // --- ToDo機能 ---
+        function addTask() {
+            const input = document.getElementById('newTaskInput');
+            if (input.value.trim() === "") return;
+            tasks.push({ text: input.value, completed: false });
+            input.value = "";
+            saveTasks();
+            renderTasks();
+        }
 
-    function completeTask() {
-        if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
-        count++;
-        const today = new Date().toLocaleDateString();
-        if (lastDate !== today) { streak++; lastDate = today; }
-        localStorage.setItem('myAppCount', count);
-        localStorage.setItem('myStreak', streak);
-        localStorage.setItem('lastCompleteDate', lastDate);
-        tasks = [];
-        saveTasks();
-        
-        setTimeout(() => {
-            // 解除も直接叩く
-            window.location.href = "shortcuts://run-shortcut?name=ロック解除";
-        }, 500);
-    }
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
 
-    // --- 以下、タイマーやタスクの基本機能（変更なし） ---
-    function saveTargetTime() {
-        targetTime = document.getElementById('targetTimeInput').value;
-        localStorage.setItem('targetTime', targetTime);
-    }
-    function addTask() {
-        const input = document.getElementById('newTaskInput');
-        if (input.value.trim() === "") return;
-        tasks.push({ text: input.value, completed: false });
-        input.value = "";
-        saveTasks();
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('myTasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = "";
+            let allDone = tasks.length > 0;
+            tasks.forEach((task, i) => {
+                if (!task.completed) allDone = false;
+                const li = document.createElement('li');
+                li.className = "task-item";
+                li.innerHTML = `
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
+                    <span class="task-text" style="${task.completed ? 'text-decoration:line-through;color:#8e8e93;' : ''}">${task.text}</span>
+                    <span class="delete-task" onclick="deleteTask(${i})">削除</span>
+                `;
+                list.appendChild(li);
+            });
+            document.getElementById('completeBtn').disabled = !allDone;
+        }
+
+        // --- 完了・解除機能 ---
+        function completeTask() {
+            if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+            count++;
+            const today = new Date().toLocaleDateString();
+            if (lastDate !== today) { streak++; lastDate = today; }
+            localStorage.setItem('myAppCount', count);
+            localStorage.setItem('myStreak', streak);
+            localStorage.setItem('lastCompleteDate', lastDate);
+            document.getElementById('msg').innerText = "ナイスバッティング！";
+            
+            tasks = []; // 完了したらリストをリセット
+            saveTasks();
+            updateDisplay();
+            renderTasks();
+            
+            setTimeout(() => {
+                window.location.href = "shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://";
+            }, 500);
+        }
+
+        function updateDisplay() {
+            document.getElementById('count-display').innerText = count;
+            document.getElementById('streak-container').innerText = `🔥 ${streak}日連続達成中`;
+        }
+
+        function updateTimer() {
+            const now = new Date();
+            const [h, m] = targetTime.split(':');
+            let target = new Date();
+            target.setHours(h, m, 0, 0);
+            if (now > target) target.setDate(target.getDate() + 1);
+            const diff = target - now;
+            const hh = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');
+            const mm = (Math.floor(diff / 1000 / 60) % 60).toString().padStart(2, '0');
+            const ss = (Math.floor(diff / 1000) % 60).toString().padStart(2, '0');
+            document.getElementById('countdown').innerText = `${hh}:${mm}:${ss}`;
+        }
+
+        setInterval(updateTimer, 1000);
         renderTasks();
-    }
-    function toggleTask(index) {
-        tasks[index].completed = !tasks[index].completed;
-        saveTasks();
-        renderTasks();
-    }
-    function deleteTask(index) {
-        tasks.splice(index, 1);
-        saveTasks();
-        renderTasks();
-    }
-    function saveTasks() {
-        localStorage.setItem('myTasks', JSON.stringify(tasks));
-    }
-    function renderTasks() {
-        const list = document.getElementById('taskList');
-        list.innerHTML = "";
-        let allDone = tasks.length > 0;
-        tasks.forEach((task, i) => {
-            if (!task.completed) allDone = false;
-            const li = document.createElement('li');
-            li.className = "task-item";
-            li.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
-                <span class="task-text" style="${task.completed ? 'text-decoration:line-through;color:#8e8e93;' : ''}">${task.text}</span>
-                <span class="delete-task" onclick="deleteTask(${i})">削除</span>
-            `;
-            list.appendChild(li);
-        });
-        document.getElementById('completeBtn').disabled = !allDone;
-    }
-    function updateTimer() {
-        const now = new Date();
-        const [h, m] = targetTime.split(':');
-        let target = new Date();
-        target.setHours(h, m, 0, 0);
-        if (now > target) target.setDate(target.getDate() + 1);
-        const diff = target - now;
-        const hh = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');
-        const mm = (Math.floor(diff / 1000 / 60) % 60).toString().padStart(2, '0');
-        const ss = (Math.floor(diff / 1000) % 60).toString().padStart(2, '0');
-        document.getElementById('countdown').innerText = `${hh}:${mm}:${ss}`;
-        document.getElementById('streak-container').innerText = `🔥 ${streak}日連続達成中`;
-    }
-    setInterval(updateTimer, 1000);
-    renderTasks();
-    updateTimer();
-</script>
-
+        updateDisplay();
+        updateTimer();
+    </script>
 </body>
 </html>
