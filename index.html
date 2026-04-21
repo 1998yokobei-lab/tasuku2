@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        /* 前の「できてたスタイル」を完全維持 + ToDo用 */
         :root { --bg: #001d42; --card: #ffffff; --blue: #007aff; --red: #ff3b30; --green: #34c759; --text: #1c1c1e; }
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         .streak-badge { background: linear-gradient(45deg, #ff9500, #ff5e3a); color: white; border-radius: 50px; padding: 5px 15px; font-size: 14px; font-weight: 800; display: inline-block; margin-bottom: 10px; }
@@ -17,11 +16,9 @@
         .btn { display: flex; align-items: center; justify-content: center; height: 65px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 15px; border: none; width: 100%; }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
-        
-        /* 追加したToDoの見た目（シンプルに） */
         .task-item { display: flex; align-items: center; text-align: left; padding: 10px 0; border-bottom: 1px solid #eee; }
         input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
-        .task-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; }
+        .task-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -37,22 +34,25 @@
 
     <div class="card">
         <input type="text" id="newTask" class="task-input" placeholder="やることを入力...">
-        <button onclick="addTask()" style="margin-bottom:20px;">追加</button>
+        <button onclick="addTask()" style="margin-bottom:20px; width: 100%; padding: 10px; border-radius: 10px; background: var(--blue); color: white; border: none; font-weight: bold;">追加</button>
         <div id="taskList"></div>
-        <hr>
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">集中モード開始</a>
+        <hr style="margin: 20px 0; opacity: 0.2;">
+        
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=https://1998yokobei-lab.github.io/tasuku2/" class="btn btn-red">集中モード開始</a>
         <button id="compBtn" class="btn btn-green" onclick="completeTask()" disabled>タスク完了＆解除</button>
         <div id="msg"></div>
     </div>
 
     <script>
-        let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
-        let streak = parseInt(localStorage.getItem('myStreak')) || 0;
-        let targetTime = localStorage.getItem('targetTime') || "22:00";
+        const MY_URL = "https://1998yokobei-lab.github.io/tasuku2/";
+        let tasks = JSON.parse(localStorage.getItem('myTasks2')) || [];
+        let streak = parseInt(localStorage.getItem('myStreak2')) || 0;
+        let count = parseInt(localStorage.getItem('myCount2')) || 0;
+        let targetTime = localStorage.getItem('targetTime2') || "22:00";
         document.getElementById('targetTimeInput').value = targetTime;
 
         function saveTargetTime() {
-            localStorage.setItem('targetTime', document.getElementById('targetTimeInput').value);
+            localStorage.setItem('targetTime2', document.getElementById('targetTimeInput').value);
         }
 
         function addTask() {
@@ -75,17 +75,17 @@
                 list.appendChild(div);
             });
             document.getElementById('compBtn').disabled = !allDone;
-            localStorage.setItem('myTasks', JSON.stringify(tasks));
+            localStorage.setItem('myTasks2', JSON.stringify(tasks));
         }
 
         function completeTask() {
             tasks = [];
             render();
-            // ★ 前にできてた「webapp://」での解除
-            window.location.href = "shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://";
+            // 解除もtasuku2に固定
+            const encodedUrl = encodeURIComponent(MY_URL);
+            window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodedUrl}`;
         }
 
-        // タイマーなどの処理（省略せず入れる）
         setInterval(() => {
             const now = new Date();
             const [h, m] = document.getElementById('targetTimeInput').value.split(':');
