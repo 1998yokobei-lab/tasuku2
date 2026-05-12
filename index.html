@@ -2,104 +2,208 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TaskForce Stadium</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>God morgon</title>
+    <!-- PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
     <style>
-        :root { --bg: #001d42; --card: #ffffff; --blue: #007aff; --red: #ff3b30; --green: #34c759; --text: #1c1c1e; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        .streak-badge { background: linear-gradient(45deg, #ff9500, #ff5e3a); color: white; border-radius: 50px; padding: 5px 15px; font-size: 14px; font-weight: 800; display: inline-block; margin-bottom: 10px; }
-        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; }
-        .timer-display { font-size: 40px; font-weight: 800; }
-        .card { background: var(--card); border-radius: 24px; padding: 24px; margin-bottom: 20px; text-align: center; }
-        .btn { display: flex; align-items: center; justify-content: center; height: 65px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 15px; border: none; width: 100%; }
-        .btn-red { background: var(--red); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .task-item { display: flex; align-items: center; text-align: left; padding: 10px 0; border-bottom: 1px solid #eee; }
-        input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
-        .task-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        :root {
+            --ikea-blue: #0058AB;
+            --ikea-yellow: #FFCC00;
+            --snow-white: #FFFFFF;
+            --dark-gray: #333333;
+            --border-light: #EEEEEE;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, sans-serif;
+            background: var(--snow-white);
+            color: var(--dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* 1. オープニング演出 */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--snow-white);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .splash-text {
+            font-size: 28px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: sunrise 2.5s forwards;
+        }
+
+        @keyframes sunrise {
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-5px); }
+        }
+
+        /* メイン画面 */
+        main {
+            padding: 60px 24px;
+            max-width: 500px;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        h1 { font-size: 32px; font-weight: 800; color: var(--ikea-blue); margin-bottom: 24px; }
+
+        /* タスク追加 UI */
+        .input-group {
+            display: flex; gap: 10px; margin-bottom: 32px;
+        }
+
+        input[type="text"] {
+            flex: 1; border: 2px solid var(--border-light); border-radius: 12px;
+            padding: 16px; font-size: 16px; font-weight: 600; outline: none;
+        }
+
+        #add-btn {
+            background: var(--ikea-blue); color: white; border: none;
+            border-radius: 12px; padding: 0 20px; font-weight: 700; cursor: pointer;
+        }
+
+        /* リスト UI */
+        .todo-item {
+            display: flex; align-items: center; padding: 18px;
+            border: 1px solid var(--border-light); border-radius: 14px; margin-bottom: 12px;
+            transition: 0.3s;
+        }
+
+        .checkbox {
+            width: 30px; height: 30px; border: 2px solid var(--ikea-blue);
+            border-radius: 10px; margin-right: 16px; display: flex;
+            justify-content: center; align-items: center; font-weight: bold;
+        }
+
+        .completed { background: #FAFAFA; border-color: transparent; }
+        .completed .checkbox { background: var(--ikea-yellow); border-color: var(--ikea-yellow); }
+        .completed .text { text-decoration: line-through; opacity: 0.4; }
+
+        .delete-btn { color: #CCC; margin-left: auto; padding: 5px; font-size: 18px; }
+
+        /* ご褒美演出 */
+        #reward {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            background: var(--ikea-blue); color: white; padding: 18px 30px;
+            border-radius: 40px; font-weight: bold; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            white-space: nowrap; z-index: 500;
+        }
+        #reward.show { bottom: 40px; }
     </style>
 </head>
 <body>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <div id="streak-container" class="streak-badge">🔥 0日連続達成中</div>
+    <div id="splash-screen">
+        <div class="splash-text">おはようございます!</div>
     </div>
 
-    <div class="timer-card">
-        <div class="timer-display" id="countdown">00:00:00</div>
-        <div style="margin-top:10px;"><input type="time" id="targetTimeInput" onchange="saveTargetTime()"></div>
-    </div>
-
-    <div class="card">
-        <input type="text" id="newTask" class="task-input" placeholder="やることを入力...">
-        <button onclick="addTask()" style="margin-bottom:20px; width: 100%; padding: 10px; border-radius: 10px; background: var(--blue); color: white; border: none; font-weight: bold;">追加</button>
-        <div id="taskList"></div>
-        <hr style="margin: 20px 0; opacity: 0.2;">
+    <main id="main-content">
+        <h1>Routine</h1>
         
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=https://1998yokobei-lab.github.io/tasuku2/" class="btn btn-red">集中モード開始</a>
-        <button id="compBtn" class="btn btn-green" onclick="completeTask()" disabled>タスク完了＆解除</button>
-        <div id="msg"></div>
-    </div>
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="新しい習慣を追加..." maxlength="20">
+            <button id="add-btn">追加</button>
+        </div>
+
+        <div id="todo-list"></div>
+    </main>
+
+    <div id="reward">🔓　今日も素晴らしい1日を！</div>
 
     <script>
-        const MY_URL = "https://1998yokobei-lab.github.io/tasuku2/";
-        let tasks = JSON.parse(localStorage.getItem('myTasks2')) || [];
-        let streak = parseInt(localStorage.getItem('myStreak2')) || 0;
-        let count = parseInt(localStorage.getItem('myCount2')) || 0;
-        let targetTime = localStorage.getItem('targetTime2') || "22:00";
-        document.getElementById('targetTimeInput').value = targetTime;
+        const storageKey = 'morning_routine_v4';
+        let todos = JSON.parse(localStorage.getItem(storageKey)) || [
+            { text: '朝日を浴びる', done: false },
+            { text: '水を飲む', done: false }
+        ];
 
-        function saveTargetTime() {
-            localStorage.setItem('targetTime2', document.getElementById('targetTimeInput').value);
-        }
+        const splash = document.getElementById('splash-screen');
+        const main = document.getElementById('main-content');
+        const input = document.getElementById('todo-input');
+        const addBtn = document.getElementById('add-btn');
+        const listContainer = document.getElementById('todo-list');
+        const reward = document.getElementById('reward');
 
-        function addTask() {
-            const val = document.getElementById('newTask').value;
-            if(!val) return;
-            tasks.push({text: val, done: false});
-            document.getElementById('newTask').value = "";
+        // 起動時演出
+        window.onload = () => {
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    main.style.opacity = '1';
+                }, 800);
+            }, 2500);
             render();
+        };
+
+        function haptic(type = 'light') {
+            if (navigator.vibrate) navigator.vibrate(type === 'heavy' ? [30, 50, 30] : 15);
         }
 
         function render() {
-            const list = document.getElementById('taskList');
-            list.innerHTML = "";
-            let allDone = tasks.length > 0;
-            tasks.forEach((t, i) => {
-                if(!t.done) allDone = false;
-                const div = document.createElement('div');
-                div.className = "task-item";
-                div.innerHTML = `<input type="checkbox" ${t.done?'checked':''} onchange="tasks[${i}].done=!tasks[${i}].done;render()"> ${t.text}`;
-                list.appendChild(div);
+            listContainer.innerHTML = '';
+            const allDone = todos.length > 0 && todos.every(t => t.done);
+
+            // ロック状態をハッシュに書き込む（iPhoneショートカット連携用）
+            window.location.hash = allDone ? "all_cleared" : "locked";
+
+            // ご褒美アニメーション
+            if (allDone) {
+                reward.classList.add('show');
+            } else {
+                reward.classList.remove('show');
+            }
+
+            todos.forEach((t, i) => {
+                const item = document.createElement('div');
+                item.className = `todo-item ${t.done ? 'completed' : ''}`;
+                item.innerHTML = `
+                    <div class="checkbox" onclick="toggle(${i})">${t.done ? '✓' : ''}</div>
+                    <div class="text" style="flex:1; font-weight:700;" onclick="toggle(${i})">${t.text}</div>
+                    <div class="delete-btn" onclick="del(${i})">×</div>
+                `;
+                listContainer.appendChild(item);
             });
-            document.getElementById('compBtn').disabled = !allDone;
-            localStorage.setItem('myTasks2', JSON.stringify(tasks));
+            localStorage.setItem(storageKey, JSON.stringify(todos));
         }
 
-        function completeTask() {
-            tasks = [];
+        function toggle(i) {
+            todos[i].done = !todos[i].done;
+            if (todos[i].done) haptic('light');
+            if (todos.length > 0 && todos.every(t => t.done)) haptic('heavy');
             render();
-            // 解除もtasuku2に固定
-            const encodedUrl = encodeURIComponent(MY_URL);
-            window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodedUrl}`;
         }
 
-        setInterval(() => {
-            const now = new Date();
-            const [h, m] = document.getElementById('targetTimeInput').value.split(':');
-            let target = new Date(); target.setHours(h, m, 0, 0);
-            if (now > target) target.setDate(target.getDate() + 1);
-            const diff = target - now;
-            const hh = Math.floor(diff/3600000).toString().padStart(2,'0');
-            const mm = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
-            const ss = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
-            document.getElementById('countdown').innerText = `${hh}:${mm}:${ss}`;
-            document.getElementById('streak-container').innerText = `🔥 ${streak}日連続達成中`;
-        }, 1000);
+        function del(i) {
+            todos.splice(i, 1);
+            render();
+        }
 
-        render();
+        addBtn.onclick = () => {
+            const val = input.value.trim();
+            if (val) {
+                todos.push({ text: val, done: false });
+                input.value = '';
+                render();
+            }
+        };
+
+        input.onkeypress = (e) => { if (e.key === 'Enter') addBtn.onclick(); };
     </script>
 </body>
 </html>
